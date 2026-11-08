@@ -1,0 +1,71 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+    image: reviewer-app
+    container_name: reviewer-app
+    restart: unless-stopped
+    # Docker's default resolver returns IPv6-only for repo.packagist.org here, which breaks composer
+    dns:
+      - 1.1.1.1
+      - 8.8.8.8
+    volumes:
+      - ./:/var/www/html
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: reviewer-nginx
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-8081}:80"
+    volumes:
+      - ./:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - app
+
+  mysql:
+    image: mysql:8.4
+    container_name: reviewer-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-reviewer}
+      MYSQL_USER: ${DB_USERNAME:-reviewer}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-secret}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root}
+    ports:
+      - "${FORWARD_DB_PORT:-3308}:3306"
+    volumes:
+      - reviewer-mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${DB_ROOT_PASSWORD:-root}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    container_name: reviewer-redis
+    restart: unless-stopped
+
+  queue:
+    image: reviewer-app
+    container_name: reviewer-queue
+    restart: unless-stopped
+    command: php artisan queue:work --tries=3
+    volumes:
+      - ./:/var/www/html
+    depends_on:
+      - app
+
+volumes:
+  reviewer-mysql-data:
