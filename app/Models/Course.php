@@ -12,12 +12,21 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable(['program_id', 'code', 'title', 'slug', 'units', 'category', 'description', 'sort_order', 'is_published'])]
 class Course extends Model
 {
     /** @use HasFactory<CourseFactory> */
     use HasFactory;
+
+    /**
+     * Delete topics one by one so their PDFs are removed from storage too.
+     */
+    protected static function booted(): void
+    {
+        static::deleting(fn (Course $course) => $course->topics()->get()->each->delete());
+    }
 
     /**
      * Course pages use readable URLs, e.g. /learn/courses/ds-230-machine-learning.
@@ -43,6 +52,22 @@ class Course extends Model
         return $this->belongsToMany(User::class, 'course_professor')
             ->where('role', UserRole::Professor)
             ->withTimestamps();
+    }
+
+    /**
+     * @return HasMany<Topic, $this>
+     */
+    public function topics(): HasMany
+    {
+        return $this->hasMany(Topic::class)->orderBy('sort_order');
+    }
+
+    /**
+     * @return HasMany<Topic, $this>
+     */
+    public function publishedTopics(): HasMany
+    {
+        return $this->topics()->where('is_published', true);
     }
 
     public function isHandledBy(User $user): bool

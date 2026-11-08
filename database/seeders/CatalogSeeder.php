@@ -3,8 +3,10 @@
 namespace Database\Seeders;
 
 use App\Enums\CourseCategory;
+use App\Models\Course;
 use App\Models\Program;
 use App\Models\User;
+use Database\Factories\MaterialFactory;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
@@ -45,6 +47,37 @@ class CatalogSeeder extends Seeder
         if ($professor !== null) {
             $program->courses()->whereIn('code', ['DS 210', 'DS 230'])->get()
                 ->each(fn ($course) => $course->professors()->syncWithoutDetaching([$professor->id]));
+        }
+
+        $this->seedSampleLessons($program->courses()->where('code', 'DS 230')->sole(), $professor);
+    }
+
+    /**
+     * A couple of topics with generated one-page PDFs, so the reader has something to open.
+     */
+    private function seedSampleLessons(Course $course, ?User $professor): void
+    {
+        if ($course->topics()->exists()) {
+            return;
+        }
+
+        $lessons = [
+            'Week 1 · Introduction to Machine Learning' => ['Course Overview', 'The Learning Problem'],
+            'Week 2 · Linear Models' => ['Linear Regression', 'Logistic Regression'],
+        ];
+
+        foreach (array_keys($lessons) as $topicOrder => $topicTitle) {
+            $topic = $course->topics()->create(['title' => $topicTitle, 'sort_order' => $topicOrder, 'is_published' => true]);
+
+            foreach ($lessons[$topicTitle] as $materialOrder => $materialTitle) {
+                $topic->materials()->create([
+                    'title' => $materialTitle,
+                    'file_path' => MaterialFactory::storeSamplePdf($materialTitle),
+                    'original_name' => Str::slug($materialTitle).'.pdf',
+                    'uploaded_by' => $professor?->id,
+                    'sort_order' => $materialOrder,
+                ]);
+            }
         }
     }
 

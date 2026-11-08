@@ -11,6 +11,13 @@ class ViewCourse extends ViewRecord
 {
     protected static string $resource = CourseResource::class;
 
+    public function mount(int|string $record): void
+    {
+        parent::mount($record);
+
+        $this->getRecord()->load('publishedTopics.materials.topic.course');
+    }
+
     public function getTitle(): string|Htmlable
     {
         /** @var Course $course */

@@ -18,6 +18,14 @@ class Program extends Model
     use HasFactory;
 
     /**
+     * Delete courses one by one so their topics' PDFs are removed from storage too.
+     */
+    protected static function booted(): void
+    {
+        static::deleting(fn (Program $program) => $program->courses()->get()->each->delete());
+    }
+
+    /**
      * @return HasMany<Course, $this>
      */
     public function courses(): HasMany
