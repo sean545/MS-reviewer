@@ -72,6 +72,14 @@ class Course extends Model
     }
 
     /**
+     * @return HasMany<Announcement, $this>
+     */
+    public function announcements(): HasMany
+    {
+        return $this->hasMany(Announcement::class);
+    }
+
+    /**
      * PDFs in this course's published topics.
      *
      * @return HasManyThrough<Material, Topic, $this>

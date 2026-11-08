@@ -1,0 +1,30 @@
+# Production overrides. Use with:
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+# (docker/deploy.sh does this for you.)
+services:
+  app:
+    restart: always
+    volumes:
+      - ./:/var/www/html
+      - ./docker/php/opcache-production.ini:/usr/local/etc/php/conf.d/zz-production.ini:ro
+
+  nginx:
+    restart: always
+    ports: !override
+      - "${APP_PORT:-80}:80"
+
+  mysql:
+    restart: always
+    # Not published to the host in production
+    ports: !reset []
+
+  redis:
+    restart: always
+
+  queue:
+    restart: always
+    command: php artisan queue:work --tries=3 --max-time=3600
+    volumes:
+      - ./:/var/www/html
+      - ./docker/php/opcache-production.ini:/usr/local/etc/php/conf.d/zz-production.ini:ro
+

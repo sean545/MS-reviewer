@@ -13,6 +13,12 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        if (app()->isProduction()) {
+            $this->command?->warn('Skipping demo accounts and sample data in production. Use `php artisan users:make-admin you@example.com`.');
+
+            return;
+        }
+
         $accounts = [
             ['email' => 'admin@reviewer.test', 'name' => 'Admin', 'role' => UserRole::Admin],
             ['email' => 'prof@reviewer.test', 'name' => 'Sample Professor', 'role' => UserRole::Professor],

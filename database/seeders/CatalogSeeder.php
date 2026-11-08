@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Enums\CourseCategory;
+use App\Models\Announcement;
 use App\Models\Course;
 use App\Models\Program;
 use App\Models\User;
@@ -50,6 +51,15 @@ class CatalogSeeder extends Seeder
         }
 
         $this->seedSampleLessons($program->courses()->where('code', 'DS 230')->sole(), $professor);
+
+        Announcement::firstOrCreate(
+            ['title' => 'Welcome to MS Reviewer'],
+            [
+                'body' => 'All readings for your MS courses live here. Open a course, mark PDFs as done as you review, and use Search to find any topic across every PDF.',
+                'is_pinned' => true,
+                'published_at' => now(),
+            ],
+        );
     }
 
     /**

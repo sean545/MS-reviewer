@@ -6,6 +6,7 @@ use App\Enums\CourseCategory;
 use App\Filament\Learn\Resources\Courses\Pages\ListCourses;
 use App\Filament\Learn\Resources\Courses\Pages\ReadMaterial;
 use App\Filament\Learn\Resources\Courses\Pages\ViewCourse;
+use App\Models\Announcement;
 use App\Models\Course;
 use App\Models\Material;
 use App\Models\Topic;
@@ -126,6 +127,23 @@ class CourseResource extends Resource
                             ->badge()
                             ->color('gray')
                             ->placeholder('To be announced'),
+                    ]),
+                Section::make('Announcements')
+                    ->icon(Heroicon::OutlinedMegaphone)
+                    ->columnSpanFull()
+                    ->visible(fn (Course $record): bool => $record->announcements->isNotEmpty())
+                    ->schema([
+                        RepeatableEntry::make('announcements')
+                            ->hiddenLabel()
+                            ->contained(false)
+                            ->schema([
+                                TextEntry::make('title')
+                                    ->hiddenLabel()
+                                    ->weight('bold')
+                                    ->helperText(fn (Announcement $record): string => $record->published_at->diffForHumans()),
+                                TextEntry::make('body')
+                                    ->hiddenLabel(),
+                            ]),
                     ]),
                 Section::make('Lessons')
                     ->description('Topics and their readings, in order.')

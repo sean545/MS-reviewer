@@ -20,6 +20,7 @@ class ViewCourse extends ViewRecord
         $this->getRecord()->load([
             'publishedTopics.materials.topic.course',
             'publishedTopics.materials.progress' => fn (HasMany $progress) => $progress->where('user_id', Auth::id()),
+            'announcements' => fn (HasMany $announcements) => $announcements->visibleToStudents()->latestFirst(),
         ]);
     }
 

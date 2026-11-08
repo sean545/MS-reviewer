@@ -42,6 +42,8 @@ class LearnPanelProvider extends PanelProvider
             ->id('learn')
             ->path('learn')
             ->login()
+            ->profile(isSimple: false)
+            ->favicon(asset('images/logo.svg'))
             ->registration()
             ->brandName(config('app.name'))
             ->colors(self::colors())
