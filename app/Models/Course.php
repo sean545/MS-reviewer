@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 #[Fillable(['program_id', 'code', 'title', 'slug', 'units', 'category', 'description', 'sort_order', 'is_published'])]
 class Course extends Model
@@ -68,6 +69,33 @@ class Course extends Model
     public function publishedTopics(): HasMany
     {
         return $this->topics()->where('is_published', true);
+    }
+
+    /**
+     * PDFs in this course's published topics.
+     *
+     * @return HasManyThrough<Material, Topic, $this>
+     */
+    public function publishedMaterials(): HasManyThrough
+    {
+        return $this->hasManyThrough(Material::class, Topic::class)->where('topics.is_published', true);
+    }
+
+    /**
+     * Published PDFs in reading order (topic order, then material order).
+     *
+     * @return list<int>
+     */
+    public function readingOrder(): array
+    {
+        return Material::query()
+            ->join('topics', 'topics.id', '=', 'materials.topic_id')
+            ->where('topics.course_id', $this->getKey())
+            ->where('topics.is_published', true)
+            ->orderBy('topics.sort_order')->orderBy('topics.id')
+            ->orderBy('materials.sort_order')->orderBy('materials.id')
+            ->pluck('materials.id')
+            ->all();
     }
 
     public function isHandledBy(User $user): bool

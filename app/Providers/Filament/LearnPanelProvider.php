@@ -10,7 +10,6 @@ use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
-use Filament\Widgets\AccountWidget;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
@@ -19,7 +18,7 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 /**
- * Student portal: browse courses and review lesson PDFs. Anyone may register as a student.
+ * Student portal: browse courses, read lesson PDFs, track progress, take notes and search readings. Anyone may register as a student.
  */
 class LearnPanelProvider extends PanelProvider
 {
@@ -52,9 +51,7 @@ class LearnPanelProvider extends PanelProvider
             ->pages([
                 Dashboard::class,
             ])
-            ->widgets([
-                AccountWidget::class,
-            ])
+            ->discoverWidgets(in: app_path('Filament/Learn/Widgets'), for: 'App\Filament\Learn\Widgets')
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,

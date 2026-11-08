@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Number;
 use Illuminate\Support\Str;
@@ -59,6 +60,45 @@ class Material extends Model
     public function uploader(): BelongsTo
     {
         return $this->belongsTo(User::class, 'uploaded_by');
+    }
+
+    /**
+     * @return HasMany<MaterialPage, $this>
+     */
+    public function pages(): HasMany
+    {
+        return $this->hasMany(MaterialPage::class)->orderBy('page_number');
+    }
+
+    /**
+     * @return HasMany<ReadingProgress, $this>
+     */
+    public function progress(): HasMany
+    {
+        return $this->hasMany(ReadingProgress::class);
+    }
+
+    /**
+     * @return HasMany<Note, $this>
+     */
+    public function notes(): HasMany
+    {
+        return $this->hasMany(Note::class);
+    }
+
+    /**
+     * The user's progress row, using the eager-loaded relation when present.
+     */
+    public function progressFor(User $user): ?ReadingProgress
+    {
+        return $this->relationLoaded('progress')
+            ? $this->progress->firstWhere('user_id', $user->getKey())
+            : $this->progress()->where('user_id', $user->getKey())->first();
+    }
+
+    public function isCompletedBy(User $user): bool
+    {
+        return $this->progressFor($user)?->isCompleted() ?? false;
     }
 
     /**

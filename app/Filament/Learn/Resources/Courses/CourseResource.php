@@ -9,6 +9,7 @@ use App\Filament\Learn\Resources\Courses\Pages\ViewCourse;
 use App\Models\Course;
 use App\Models\Material;
 use App\Models\Topic;
+use App\Models\User;
 use BackedEnum;
 use Filament\Actions\ViewAction;
 use Filament\Infolists\Components\ImageEntry;
@@ -23,6 +24,7 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Grouping\Group;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * Read-only course catalog for the student portal. Everyone signed in may browse
@@ -45,9 +47,18 @@ class CourseResource extends Resource
      */
     public static function getEloquentQuery(): Builder
     {
+        $userId = Auth::id();
+
         return parent::getEloquentQuery()
             ->visibleToStudents()
-            ->with(['program', 'professors']);
+            ->with(['program', 'professors'])
+            ->withCount([
+                'publishedMaterials',
+                'publishedMaterials as completed_materials_count' => fn (Builder $materials) => $materials->whereHas(
+                    'progress',
+                    fn (Builder $progress) => $progress->where('user_id', $userId)->whereNotNull('completed_at'),
+                ),
+            ]);
     }
 
     public static function table(Table $table): Table
@@ -67,6 +78,11 @@ class CourseResource extends Resource
                     ->badge(),
                 TextColumn::make('units')
                     ->alignCenter(),
+                TextColumn::make('progress')
+                    ->label('My progress')
+                    ->state(fn (Course $record): string => static::progressLabel($record))
+                    ->badge()
+                    ->color(fn (Course $record): string => static::progressColor($record)),
             ])
             ->filters([
                 SelectFilter::make('program')
@@ -100,6 +116,11 @@ class CourseResource extends Resource
                         TextEntry::make('category')
                             ->badge(),
                         TextEntry::make('units'),
+                        TextEntry::make('progress')
+                            ->label('My progress')
+                            ->state(fn (Course $record): string => static::progressLabel($record))
+                            ->badge()
+                            ->color(fn (Course $record): string => static::progressColor($record)),
                         TextEntry::make('professors.name')
                             ->label('Professors')
                             ->badge()
@@ -145,15 +166,64 @@ class CourseResource extends Resource
                                             ->color('gray')
                                             ->size('sm')
                                             ->state(fn (Material $record): string => $record->details()),
+                                        TextEntry::make('status')
+                                            ->hiddenLabel()
+                                            ->badge()
+                                            ->state(fn (Material $record): ?string => static::materialStatus($record))
+                                            ->color(fn (?string $state): string => $state === 'Done' ? 'success' : 'info')
+                                            ->icon(fn (?string $state): Heroicon => $state === 'Done' ? Heroicon::OutlinedCheckCircle : Heroicon::OutlinedEye),
                                     ]),
                             ]),
                     ]),
             ]);
     }
 
-    public static function readUrl(Material $material): string
+    /**
+     * "Done" / "Opened" / null for the signed-in user, from eager-loaded progress.
+     */
+    public static function materialStatus(Material $material): ?string
     {
-        return static::getUrl('read', ['record' => $material->topic->course, 'materialId' => $material->getKey()], panel: 'learn');
+        /** @var User $user */
+        $user = Auth::user();
+        $progress = $material->progressFor($user);
+
+        return match (true) {
+            $progress === null => null,
+            $progress->isCompleted() => 'Done',
+            default => 'Opened',
+        };
+    }
+
+    public static function progressLabel(Course $course): string
+    {
+        $total = (int) $course->published_materials_count;
+
+        if ($total === 0) {
+            return 'No PDFs yet';
+        }
+
+        return "{$course->completed_materials_count} / {$total} done";
+    }
+
+    public static function progressColor(Course $course): string
+    {
+        $total = (int) $course->published_materials_count;
+        $done = (int) $course->completed_materials_count;
+
+        return match (true) {
+            $total > 0 && $done >= $total => 'success',
+            $done > 0 => 'warning',
+            default => 'gray',
+        };
+    }
+
+    public static function readUrl(Material $material, ?int $page = null): string
+    {
+        return static::getUrl('read', array_filter([
+            'record' => $material->topic->course,
+            'materialId' => $material->getKey(),
+            'page' => $page,
+        ]), panel: 'learn');
     }
 
     public static function getPages(): array

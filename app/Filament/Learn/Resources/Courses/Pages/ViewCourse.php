@@ -6,6 +6,8 @@ use App\Filament\Learn\Resources\Courses\CourseResource;
 use App\Models\Course;
 use Filament\Resources\Pages\ViewRecord;
 use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Auth;
 
 class ViewCourse extends ViewRecord
 {
@@ -15,7 +17,10 @@ class ViewCourse extends ViewRecord
     {
         parent::mount($record);
 
-        $this->getRecord()->load('publishedTopics.materials.topic.course');
+        $this->getRecord()->load([
+            'publishedTopics.materials.topic.course',
+            'publishedTopics.materials.progress' => fn (HasMany $progress) => $progress->where('user_id', Auth::id()),
+        ]);
     }
 
     public function getTitle(): string|Htmlable
