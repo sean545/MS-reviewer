@@ -27,7 +27,9 @@ Open http://localhost:8081. Dev accounts (password `password`): `admin@reviewer.
 `prof@reviewer.test`, `student@reviewer.test`.
 
 PDF processing (page count, thumbnail, search text) runs on the `queue` container. After changing
-job code, run `docker compose restart queue`. To re-index every PDF, run
+job code, run `docker compose restart queue`. After changing the panel theme
+(`resources/css/filament/learn/theme.css`) or Blade views, rebuild it with
+`docker compose exec app npm run build`. To re-index every PDF, run
 `docker compose exec app php artisan materials:reprocess`.
 
 ## Production

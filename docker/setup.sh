@@ -31,6 +31,7 @@ grep -q '^APP_KEY=base64' .env || $app php artisan key:generate --no-interaction
 $app php artisan filament:upgrade --no-interaction
 $app php artisan storage:link --no-interaction || true
 $app php artisan migrate --seed --force --no-interaction
+$app sh -c 'npm ci --no-audit --no-fund && npm run build'
 docker compose restart queue
 
 echo "==> Done: http://localhost:${APP_PORT:-8081}/admin  (admin@reviewer.test / password)"

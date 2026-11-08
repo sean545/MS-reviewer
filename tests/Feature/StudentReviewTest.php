@@ -8,7 +8,7 @@ use App\Filament\Learn\Resources\Courses\Pages\ListCourses;
 use App\Filament\Learn\Resources\Courses\Pages\ReadMaterial;
 use App\Filament\Learn\Resources\Notes\Pages\ManageNotes;
 use App\Filament\Learn\Widgets\ContinueReviewing;
-use App\Filament\Learn\Widgets\ReviewStats;
+use App\Filament\Learn\Widgets\WelcomeBanner;
 use App\Models\Material;
 use App\Models\Note;
 use App\Models\ReadingProgress;
@@ -115,6 +115,11 @@ class StudentReviewTest extends TestCase
             ->assertCanNotSeeTableRecords($hidden->pages);
 
         $this->get(SearchReadings::getUrl(panel: 'learn'))->assertOk();
+
+        Livewire::withQueryParams(['q' => 'gradient'])
+            ->test(SearchReadings::class)
+            ->assertSet('tableSearch', 'gradient')
+            ->assertCanSeeTableRecords($visible->pages);
     }
 
     public function test_dashboard_shows_progress_and_recent_readings(): void
@@ -132,8 +137,8 @@ class StudentReviewTest extends TestCase
             ->assertCountTableRecords(1)
             ->assertSee('Bayes Theorem');
 
-        Livewire::test(ReviewStats::class)
-            ->assertSee('PDFs reviewed')
-            ->assertSee('1 / 2');
+        Livewire::test(WelcomeBanner::class)
+            ->assertSee('ready to review?')
+            ->assertSee("You've finished 1 of 2 readings", escape: false);
     }
 }

@@ -24,15 +24,13 @@ class AdminPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
     {
-        return $panel
+        return LearnPanelProvider::applyTheme($panel)
             ->default()
             ->id('admin')
             ->path('admin')
             ->login()
             ->profile(isSimple: false)
-            ->favicon(asset('images/logo.svg'))
             ->brandName(config('app.name').' · Admin')
-            ->colors(LearnPanelProvider::colors())
             ->sidebarCollapsibleOnDesktop()
             ->navigationItems([
                 NavigationItem::make('Student portal')

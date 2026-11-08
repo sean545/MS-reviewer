@@ -6,7 +6,6 @@ use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
-use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
@@ -23,36 +22,43 @@ use Illuminate\View\Middleware\ShareErrorsFromSession;
 class LearnPanelProvider extends PanelProvider
 {
     /**
-     * Green palette shared by both panels.
+     * "Mint Clean" palette shared by both panels.
      *
      * @return array<string, array<int|string, string>>
      */
     public static function colors(): array
     {
         return [
-            'primary' => Color::hex('#1f7a4d'),
+            'primary' => Color::hex('#12a26a'),
             'success' => Color::Emerald,
-            'gray' => Color::Stone,
+            'gray' => Color::Gray,
         ];
+    }
+
+    /**
+     * Applies the shared look (palette, font, compiled theme) to a panel.
+     */
+    public static function applyTheme(Panel $panel): Panel
+    {
+        return $panel
+            ->viteTheme('resources/css/filament/learn/theme.css')
+            ->font('Plus Jakarta Sans')
+            ->colors(self::colors())
+            ->favicon(asset('images/logo.svg'));
     }
 
     public function panel(Panel $panel): Panel
     {
-        return $panel
+        return self::applyTheme($panel)
             ->id('learn')
             ->path('learn')
             ->login()
             ->profile(isSimple: false)
-            ->favicon(asset('images/logo.svg'))
             ->registration()
             ->brandName(config('app.name'))
-            ->colors(self::colors())
             ->topNavigation()
             ->discoverResources(in: app_path('Filament/Learn/Resources'), for: 'App\Filament\Learn\Resources')
             ->discoverPages(in: app_path('Filament/Learn/Pages'), for: 'App\Filament\Learn\Pages')
-            ->pages([
-                Dashboard::class,
-            ])
             ->discoverWidgets(in: app_path('Filament/Learn/Widgets'), for: 'App\Filament\Learn\Widgets')
             ->middleware([
                 EncryptCookies::class,

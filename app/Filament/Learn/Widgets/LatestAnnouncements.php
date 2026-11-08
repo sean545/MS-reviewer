@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\Builder;
  */
 class LatestAnnouncements extends TableWidget
 {
-    protected static ?int $sort = 0;
+    protected static ?int $sort = 2;
 
     protected int|string|array $columnSpan = 'full';
 

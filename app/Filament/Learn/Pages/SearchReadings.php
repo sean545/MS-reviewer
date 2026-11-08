@@ -12,6 +12,7 @@ use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Livewire\Attributes\Url;
 
 /**
  * Full-text search across the extracted text of every published PDF page.
@@ -30,6 +31,14 @@ class SearchReadings extends Page implements HasTable
 
     protected string $view = 'filament.learn.pages.search-readings';
 
+    /**
+     * Kept in the URL (?q=) so the dashboard search box can link straight to results.
+     *
+     * @var ?string
+     */
+    #[Url(as: 'q')]
+    public $tableSearch = '';
+
     public function table(Table $table): Table
     {
         return $table
@@ -39,7 +48,6 @@ class SearchReadings extends Page implements HasTable
                 ->when(blank($this->getTableSearch()), fn (Builder $query) => $query->whereRaw('1 = 0')))
             ->searchPlaceholder('Search inside all PDFs, e.g. "gradient descent"')
             ->searchDebounce('400ms')
-            ->persistSearchInSession()
             ->defaultSort('material_id')
             ->columns([
                 TextColumn::make('material.title')
