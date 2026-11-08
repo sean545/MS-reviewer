@@ -76,6 +76,9 @@ class UserRolesTest extends TestCase
     public function test_visitors_can_register_and_become_students(): void
     {
         $this->get(route('filament.learn.auth.register'))->assertOk();
-        $this->get('/')->assertRedirect('/learn');
+        $this->get('/')
+            ->assertOk()
+            ->assertSee('A quiet place')
+            ->assertSee(route('filament.learn.auth.register'));
     }
 }

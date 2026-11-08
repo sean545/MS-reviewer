@@ -3,7 +3,7 @@
 use App\Http\Controllers\MaterialFileController;
 use Illuminate\Support\Facades\Route;
 
-Route::redirect('/', '/learn')->name('home');
+Route::view('/', 'welcome')->name('home');
 
 Route::middleware('auth')->group(function (): void {
     Route::get('/materials/{material}/file', [MaterialFileController::class, 'show'])->name('materials.file');

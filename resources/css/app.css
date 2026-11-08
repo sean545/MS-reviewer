@@ -4,6 +4,14 @@
 @source '../../storage/framework/views/*.php';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+    --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-hand: 'Caveat', cursive;
+
+    --color-forest: #1f4d36;
+    --color-forest-dark: #163a28;
+    --color-forest-ink: #1c2a22;
+    --color-gold: #e7c873;
+    --color-cream: #f3efe2;
+    --color-mist: #cfdccf;
 }
