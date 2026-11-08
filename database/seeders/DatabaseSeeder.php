@@ -9,7 +9,7 @@ use Illuminate\Database\Seeder;
 class DatabaseSeeder extends Seeder
 {
     /**
-     * Seed one dev account per role (password: "password").
+     * Seed one dev account per role (password: "password") and the sample course catalog.
      */
     public function run(): void
     {
@@ -25,5 +25,7 @@ class DatabaseSeeder extends Seeder
                 ['name' => $account['name'], 'password' => 'password'],
             )->forceFill(['role' => $account['role']])->save();
         }
+
+        $this->call(CatalogSeeder::class);
     }
 }
